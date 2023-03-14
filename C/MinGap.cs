@@ -11,7 +11,7 @@ namespace Treap
     {
         void MakeEmpty();         // Reset to empty
         bool Empty();             // Return true if empty; false otherwise 
-        int Size();               // Return size 
+      //  int Size();               // Return size 
     }
 
     //-------------------------------------------------------------------------
@@ -37,6 +37,8 @@ namespace Treap
         public int     Priority { get; set; }   // Randomly generated
         public Node<T> Left     { get; set; }  
         public Node<T> Right    { get; set; }
+        public int Size { get; set; }////////////////////
+        public int MinGap { get; set; }//////////////////////
 
         // Node constructor
         public Node(T item)
@@ -44,6 +46,8 @@ namespace Treap
             Item = item;
             Priority = R.Next(10, 100);
             Left = Right = null;
+            Size = 1;//////////////////////////////
+            MinGap = int.MaxValue; //Initialize minimum gap to maximum value//////////////////
         }
     }
 
@@ -63,11 +67,17 @@ namespace Treap
         {
             MakeEmpty();
         }
-
+////////////////////////////////////////////////////////////////////////////
+    public int MinGap
+    {
+       get { return (Root != null) ? Root.MinGap : int.MaxValue; }
+    }
+ ///////////////////////////////////////////////////////////////////////////
         // LeftRotate
         // Performs a left rotation around the given root
         // Time complexity:  O(1)
 
+    
         private Node<T> LeftRotate(Node<T> root)
         {
             Node<T> temp = root.Right;
@@ -86,6 +96,43 @@ namespace Treap
             root.Left = temp.Right;
             temp.Right = root;
             return temp;
+        }
+        ///////////////////////////
+         //FindMinGap
+         // finds the minimum absolute difference between any two adjacent elements in the tree 
+         //in-order traversal of the tree
+        //////////////////////////////
+         public int FindMinGap()
+         {
+           // Find the minimum gap by traversing the tree in order and keeping track of the minimum difference
+           // between adjacent nodes.
+          int minGap = int.MaxValue;
+          Node<T> current = Root;
+          Stack<Node<T>> stack = new Stack<Node<T>>();
+
+          while (current != null || stack.Count > 0)
+          {
+           while (current != null)
+           {
+            stack.Push(current);
+            current = current.Left;
+           }
+
+           current = stack.Pop();
+
+           if (current.Right != null)
+           {
+            int gap = Math.Abs(current.Item.CompareTo(current.Right.Item));
+            if (gap < minGap)
+            {
+             minGap = gap;
+            }
+           }
+
+           current = current.Right;
+          }
+
+           return minGap;
         }
 
         // Public Add
@@ -125,8 +172,20 @@ namespace Treap
                         root = RightRotate(root);             // (if necessary)
                 }
                 // else if (cmp == 0) ... do nothing
-                return root;
+                root.Size = 1 + Size(root.Left) + Size(root.Right);/////////////// updating size///////////
             }
+
+           /////////// // updating minimum gap/////////////////////////////////
+                if (root.Left != null)
+                {
+                 root.MinGap = Math.Min(root.MinGap, Math.Abs(item.CompareTo(root.Left.Item)));
+                }
+                if (root.Right != null)
+                {
+                 root.MinGap = Math.Min(root.MinGap, Math.Abs(item.CompareTo(root.Right.Item)));
+                }
+                ///////////////////////////////////////////////////////
+                return (root);
         }
 
         // Public Remove
@@ -184,6 +243,15 @@ namespace Treap
                     // Recursively move item down the Treap
                     root = Remove(item, root);                
                 }
+          //////////////////////////////////updating minimum gap//////////////////////////
+            if (root != null)
+            {
+            root.Size = 1 + Size(root.Left) + Size(root.Right);
+
+            int leftGap = (root.Left != null) ? (root.Item.CompareTo(root.Left.Item)) : int.MaxValue;
+            int rightGap = (root.Right != null)?(root.Item.CompareTo(root.Right.Item)): int.MaxValue;
+            }
+            //////////////////////////////////////////////////////////////////
                 return root;
             }
         }
@@ -232,7 +300,7 @@ namespace Treap
 
         public int Size()
         {
-            return Size(Root);
+         return Size(Root);
         }
 
         // Size
@@ -241,10 +309,10 @@ namespace Treap
 
         private int Size(Node<T> root)
         {
-            if (root == null)
-                return 0;
-            else
-                return 1 + Size(root.Left) + Size(root.Right);
+         if (root == null)
+           return 0;
+         else
+           return 1 + Size(root.Left) + Size(root.Right);
         }
 
         // Public Height
@@ -308,8 +376,7 @@ namespace Treap
 
             B.Print();
 
-            Console.ReadLine();
-
+            Console.WriteLine("Minimum gap: " + B.FindMinGap());//////////////////////
             Console.WriteLine("Size of the Treap  : " + B.Size());
             Console.WriteLine("Height of the Treap: " + B.Height());
             Console.WriteLine("Contains 42        : " + B.Contains(42));
@@ -325,4 +392,4 @@ namespace Treap
             Console.ReadLine();
         }
     }
-}
+};
